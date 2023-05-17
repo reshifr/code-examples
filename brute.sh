@@ -1,12 +1,23 @@
-g++ \
-  -std=c++20 -Ofast \
-  brute.cpp -o /tmp/brute_b2b74b2c345b8dd2feda2720e3ae00c0 \
-  -lcrypto++ -lpthread
+#!/bin/bash
 
+BIN='/tmp/brute_b2b74b2c345b8dd2feda2720e3ae00c0'
+SRC=brute.cpp
+CPP=g++
+OPTS=(-std=c++20 -Ofast)
+LIBS=(-lcrypto++ -lpthread)
+
+rm -rf "$BIN"
 if [ "$1" == -d ]; then
-  valgrind --leak-check=full --show-leak-kinds=all \
-    /tmp/brute_b2b74b2c345b8dd2feda2720e3ae00c0
+  "$CPP" -Og -g "$OPTS" "$SRC" -o "$BIN" "$LIBS"
+  valgrind \
+    --tool=memcheck \
+    --leak-check=full \
+    --leak-resolution=high \
+    --leak-check-heuristics=all \
+    --show-leak-kinds=all \
+    --track-origins=yes \
+    "$BIN"
 else
-  /tmp/brute_b2b74b2c345b8dd2feda2720e3ae00c0
-  rm -rf /tmp/brute_b2b74b2c345b8dd2feda2720e3ae00c0
+  "$CPP" "$OPTS" "$SRC" -o "$BIN" "$LIBS"
+  "$BIN"
 fi

@@ -1,21 +1,17 @@
-#include <cmath>
-#include <crypto++/hex.h>
-#include <cstdint>
-#include <exception>
-#include <iostream>
-#include <limits>
+#include <array>
 #include <mutex>
-#include <stack>
-#include <stdexcept>
+#include <future>
 #include <thread>
 #include <vector>
-#include <functional>
-#include <future>
-#include <array>
+#include <cstdint>
+#include <iostream>
 #include <algorithm>
+#include <exception>
+#include <functional>
 #include <type_traits>
-
+#include <crypto++/hex.h>
 #include <cryptopp/cryptlib.h>
+
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
 #include <cryptopp/md5.h>
 
@@ -102,7 +98,7 @@ public:
     return hv;
   }
 
-  static block toblock(const std::string& hex) noexcept(false) {
+  static block to_block(const std::string& hex) noexcept(false) {
     constexpr auto md5s_length = 2*MD5_LENGTH;
     if( hex.size()!=md5s_length )
       throw std::invalid_argument(
@@ -138,76 +134,86 @@ public:
   }
 
   std::vector<Tp> crack(const hash_block& hv) {
+    std::size_t k = 1;
     std::vector<Tp> rc;
-    std::size_t th = std::pow(m_m.size(), m_prk);
-    rc = linear(th, hv);
-    if( !rc.empty() )
-      return rc;
-    std::size_t subk=1;
-    while( subk<std::numeric_limits<std::size_t>::max() ) {
-      std::cout<<"Iteration: "<<subk<<std::endl;
-      std::vector<std::vector<Tp>> pr;
-      mck<Tp>(m_m, m_prk, [&pr](const auto& prc) {
-        pr.push_back(prc);
-        return true;
-      });
-      rc = recursive(th, subk++, hv, pr);
+    while( k<=m_prk ) {
+      std::cout<<"Linear "<<k<<std::endl;
+      rc = linear(k, std::pow(m_m.size(), k), hv);
       if( !rc.empty() )
         return rc;
+      ++k;
+    }
+    std::size_t subk = 1;
+    std::size_t th = std::pow(m_m.size(), m_prk);
+    while( subk<std::numeric_limits<std::size_t>::max() ) {
+      std::cout<<"Recursive "<<subk<<std::endl;
+      std::vector<std::vector<Tp>> prcs;
+      mck<Tp>(m_m, m_prk, [&prcs](const auto& prc) {
+        prcs.push_back(prc);
+        return true;
+      });
+      rc = recursive(subk, th, hv, prcs);
+      if( !rc.empty() )
+        return rc;
+      ++subk;
     }
     return rc;
   }
 
 private:
-  std::vector<Tp> linear(std::size_t th, const hash_block& hv) {
+  std::vector<Tp> linear(
+    std::size_t k,
+    std::size_t th,
+    const hash_block& hv) {
     std::mutex mtx;
-    bool again = true;
     std::vector<Tp> rc;
+    std::vector<std::vector<Tp>> cs;
     std::vector<std::future<void>> procs(th);
-    // Parallel processing
+    mck<Tp>(m_m, k, [&cs](const auto& c)->bool {
+      cs.push_back(c);
+      return true;
+    });
     for(std::size_t i=0; i<th; ++i) {
-      procs[i] = std::async(
-        std::launch::async, mck<Tp>, m_m, m_prk,
-        [hv, &mtx, &rc, &again](const auto& c) {
-          H hash;
-          if( hash(c)==hv ) {
-            std::lock_guard<std::mutex> lock(mtx);
-            rc = c;
-            again = false;
-          }
-          return again;
+      procs[i] = std::async(std::launch::async, [&rc, &mtx](
+        hash h,
+        const hash_block& hv,
+        const std::vector<Tp>& c)->void {
+        if( h(c)==hv ) {
+          std::lock_guard<std::mutex> lock(mtx);
+          rc = c;
         }
-      );
+      }, hash(), hv, cs[i]);
     }
     return rc;
   }
 
   std::vector<Tp> recursive(
+    std::size_t k,
     std::size_t th,
-    std::size_t subk,
     const hash_block& hv,
-    const std::vector<std::vector<Tp>>& pr) {
+    const std::vector<std::vector<Tp>>& prcs) {
     std::mutex mtx;
     bool again = true;
     std::vector<Tp> rc;
-    // Parallel processing
     std::vector<std::future<void>> procs(th);
     for(std::size_t i=0; i<th; ++i) {
-      auto prc = pr[i];
-      procs[i] = std::async(
-        std::launch::async, mck<Tp>, m_m, subk,
-        [hv, &mtx, &rc, &again, prc](const auto& subc) {
-          H hash;
+      procs[i] = std::async(std::launch::async, [&rc, &mtx, &again](
+        hash h,
+        std::size_t k,
+        const hash_block& hv,
+        const std::vector<Tp>& m,
+        const std::vector<Tp>& prc)->void {
+        mck<Tp>(m, k, [&](const auto& subc)->bool {
           std::vector<Tp> c = prc;
           c.insert(c.end(), subc.begin(), subc.end());
-          if( hash(c)==hv ) {
+          if( h(c)==hv ) {
             std::lock_guard<std::mutex> lock(mtx);
             rc = c;
             again = false;
           }
           return again;
-        }
-      );
+        });
+      }, hash(), k, hv, m_m, prcs[i]);
     }
     return rc;
   }
@@ -215,26 +221,16 @@ private:
 
 }
 
-std::array<bru::byte, 16> strto16block(const char hex[33]) {
-  std::array<bru::byte, 16> bytes;
-  CryptoPP::HexDecoder decoder;
-  decoder.Put(reinterpret_cast<const bru::byte*>(hex), 32);
-  decoder.MessageEnd();
-  decoder.Get(bytes.data(), bytes.size());
-  return bytes;
-}
-
 int main(void) {
   std::string sm = "abcdefghijklmnopqrstuvwxyz";
   std::vector<char> m(sm.begin(), sm.end());
   bru::par<char> p(m);
-
   bru::par<char, bru::md5<char>>::hash_block hv =
-    bru::md5<char>::toblock("c6995ce71bd2954357fd403958069b7a");
+    bru::md5<char>::to_block("42810cb02db3bb2cbb428af0d8b0376e");
 
   auto c = p.crack(hv);
   auto cs = std::string(c.begin(), c.end());
   std::cout<<"Result: "<<cs<<std::endl;
-  
+
   return 0;
 }
