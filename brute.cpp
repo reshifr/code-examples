@@ -9,9 +9,15 @@
 #include <exception>
 #include <functional>
 #include <type_traits>
+
+// OpenSSL
+#include <openssl/bn.h>
+#include <openssl/md5.h>
+#include <openssl/types.h>
+
+// Crypto++
 #include <crypto++/hex.h>
 #include <cryptopp/cryptlib.h>
-
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
 #include <cryptopp/md5.h>
 
@@ -73,7 +79,40 @@ void mck(
  * Hash
  */
 template <typename Tp>
-class md5 {
+class md5v1 {
+  static_assert(
+    std::is_fundamental<Tp>::value,
+    "Parameter `Tp` must be of primitive type.");
+
+public:
+  static constexpr auto MD5_LENGTH = MD5_DIGEST_LENGTH;
+  using block = std::array<byte, MD5_LENGTH>;
+
+  block operator()(const std::vector<Tp>& blk) noexcept {
+    block hv;
+    MD5(reinterpret_cast<const byte*>(blk.data()),
+      blk.size()*sizeof(typename std::vector<Tp>::value_type),
+      hv.data());
+    return hv;
+  }
+
+  static block to_block(const std::string& hex) noexcept(false) {
+    constexpr auto md5s_length = 2*MD5_LENGTH;
+    if( hex.size()!=md5s_length )
+      throw std::invalid_argument(
+        "Error: Invalid MD5 string format for the given string.");
+    block hv;
+    BIGNUM* bn = nullptr;
+    BN_hex2bn(&bn, hex.c_str());
+    if( bn!=nullptr && BN_num_bytes(bn)==MD5_LENGTH )
+      BN_bn2bin(bn, hv.data());
+    BN_clear_free(bn);
+    return hv;
+  }
+};
+
+template <typename Tp>
+class md5v2 {
   static_assert(
     std::is_fundamental<Tp>::value,
     "Parameter `Tp` must be of primitive type.");
@@ -89,12 +128,6 @@ public:
     m_hash.CalculateDigest(hv.data(),
       reinterpret_cast<const byte*>(blk.data()),
       blk.size()*sizeof(typename std::vector<Tp>::value_type));
-    return hv;
-  }
-
-  block operator()(const block& blk) noexcept {
-    block hv;
-    m_hash.CalculateDigest(hv.data(), blk.data(), blk.size());
     return hv;
   }
 
@@ -115,7 +148,7 @@ public:
 /**
  * Main classes
  */
-template <typename Tp, class H=md5<Tp>>
+template <typename Tp, class H=md5v2<Tp>>
 class par {
   std::size_t m_prk;
   const std::vector<Tp> m_m;
@@ -224,9 +257,9 @@ private:
 int main(void) {
   std::string sm = "abcdefghijklmnopqrstuvwxyz";
   std::vector<char> m(sm.begin(), sm.end());
-  bru::par<char> p(m);
-  bru::par<char, bru::md5<char>>::hash_block hv =
-    bru::md5<char>::to_block("42810cb02db3bb2cbb428af0d8b0376e");
+  bru::par<char, bru::md5v2<char>> p(m);
+  bru::par<char, bru::md5v2<char>>::hash_block hv =
+    bru::md5v2<char>::to_block("cc689fce639ab2aa69fe308cda19b703");
 
   auto c = p.crack(hv);
   auto cs = std::string(c.begin(), c.end());
