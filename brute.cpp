@@ -87,11 +87,18 @@ public:
   static constexpr auto MD5_LENGTH =
     CryptoPP::Weak::MD5::DIGESTSIZE;
   using block = std::array<byte, MD5_LENGTH>;
+
   block operator()(const std::vector<Tp>& blk) noexcept {
     block hv;
     m_hash.CalculateDigest(hv.data(),
       reinterpret_cast<const byte*>(blk.data()),
       blk.size()*sizeof(typename std::vector<Tp>::value_type));
+    return hv;
+  }
+
+  block operator()(const block& blk) noexcept {
+    block hv;
+    m_hash.CalculateDigest(hv.data(), blk.data(), blk.size());
     return hv;
   }
 
@@ -120,6 +127,7 @@ class par {
 public:
   using hash = H;
   using hash_block = typename H::block;
+
   par(const std::vector<Tp>& m) noexcept(false): m_m(m) {
     if( m.empty() )
       throw elm_exception();
