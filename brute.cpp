@@ -16,7 +16,7 @@
 #include <openssl/types.h>
 
 // Crypto++
-#include <crypto++/hex.h>
+#include <cryptopp/hex.h>
 #include <cryptopp/cryptlib.h>
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
 #include <cryptopp/md5.h>
