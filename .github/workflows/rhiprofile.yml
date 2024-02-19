@@ -16,8 +16,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set library
         run: |
-          apt-get update
-          apt-get install -y libxxhash-dev libcrypto++-dev libglib2.0-dev
+          sudo apt-get update
+          sudo apt-get install -y libxxhash-dev libcrypto++-dev libglib2.0-dev
           (
             cd ${{ env.UTILS }}
             git clone https://github.com/reshifr/rhi.git
