@@ -64,7 +64,7 @@ void del_ks(vector<char*>& ks) {
 void insert_test(void) {
   auto mrhi = rhim_init(hrhi, eqrhi, RHI_EXTEND);
   auto mghash = g_hash_table_new(hghash, eqghash);
-  auto ks = rand_ks(10'000'000, 8, 16);
+  auto ks = rand_ks(30'000'000, 8, 16);
 
   auto t0 = chrono::high_resolution_clock::now();
   for(auto k : ks)
@@ -90,7 +90,7 @@ void insert_test(void) {
 void search_test(void) {
   auto mrhi = rhim_init(hrhi, eqrhi, RHI_EXTEND);
   auto mghash = g_hash_table_new(hghash, eqghash);
-  auto ks = rand_ks(60'000'000, 8, 16);
+  auto ks = rand_ks(30'000'000, 8, 16);
 
   for(auto k : ks)
     rhim_insert(mrhi, k, (void*)true);
@@ -101,6 +101,7 @@ void search_test(void) {
   auto t1 = chrono::high_resolution_clock::now();
   auto t = chrono::duration_cast<chrono::milliseconds>(t1-t0).count();
   cout<<"librhi search = "<<t<<" ms"<<endl;
+  cout<<"librhi size = "<<rhim_count(mrhi)<<endl;
   cout<<"librhi r = "<<r<<endl;
   rhim_free(mrhi);
 
@@ -113,6 +114,7 @@ void search_test(void) {
   t1 = chrono::high_resolution_clock::now();
   t = chrono::duration_cast<chrono::milliseconds>(t1-t0).count();
   cout<<"ghash insert = "<<t<<" ms"<<endl;
+  cout<<"ghash size = "<<g_hash_table_size(mghash)<<endl;
   cout<<"ghash r = "<<r<<endl;
   g_hash_table_destroy(mghash);
 
@@ -150,8 +152,12 @@ void delete_test(void) {
 }
 
 int main(void) {
-  // insert_test();
+  insert_test();
+  cout<<endl;
+
   search_test();
-  // delete_test();
+  cout<<endl;
+
+  delete_test();
   return 0;
 }

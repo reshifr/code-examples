@@ -1,0 +1,30 @@
+name: rhiprofile
+
+on:
+  workflow_dispatch:
+
+env:
+  UTILS: /tmp/572ab980b73e2520cd2dc96165d36c90
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: reshifr/rhi
+          path: ${{env.UTILS}}
+      - name: Set library
+        run: |
+          apt-get update
+          apt-get install -y libxxhash-dev libcrypto++-dev libglib2.0-dev
+          (
+            cd ${{env.UTILS}}/rhi
+            make dynamic
+          )
+      - name: Benchmark
+        run: |
+          chmod +x rhiprofile.sh
