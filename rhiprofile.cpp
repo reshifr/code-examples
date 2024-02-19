@@ -113,7 +113,7 @@ void search_test(void) {
     r &= (int)g_hash_table_contains(mghash, k);
   t1 = chrono::high_resolution_clock::now();
   t = chrono::duration_cast<chrono::milliseconds>(t1-t0).count();
-  cout<<"ghash insert = "<<t<<" ms"<<endl;
+  cout<<"ghash search = "<<t<<" ms"<<endl;
   cout<<"ghash size = "<<g_hash_table_size(mghash)<<endl;
   cout<<"ghash r = "<<r<<endl;
   g_hash_table_destroy(mghash);
@@ -153,11 +153,7 @@ void delete_test(void) {
 
 int main(void) {
   insert_test();
-  cout<<endl;
-
   search_test();
-  cout<<endl;
-
   delete_test();
   return 0;
 }
