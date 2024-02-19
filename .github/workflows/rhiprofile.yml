@@ -19,6 +19,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libxxhash-dev libcrypto++-dev libglib2.0-dev
           (
+            mkdir -p ${{ env.UTILS }}
             cd ${{ env.UTILS }}
             git clone https://github.com/reshifr/rhi.git
             cd rhi
