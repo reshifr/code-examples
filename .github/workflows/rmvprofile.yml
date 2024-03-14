@@ -1,4 +1,4 @@
-name: rhiprofile
+name: rmvprofile
 
 on:
   workflow_dispatch:
