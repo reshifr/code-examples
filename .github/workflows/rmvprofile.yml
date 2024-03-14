@@ -1,0 +1,25 @@
+name: rhiprofile
+
+on:
+  workflow_dispatch:
+
+env:
+  UTILS: /tmp/83bbf9d77102fb8b6514007d65f310c1
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set library
+        run: |
+          mkdir -p ${{ env.UTILS }}
+          cd ${{ env.UTILS }}
+          git clone https://github.com/reshifr/rmv.git
+      - name: Benchmark
+        run: |
+          chmod +x rmvprofile.sh
+          bash -x rmvprofile.sh
