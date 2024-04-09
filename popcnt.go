@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/bits"
 	"math/rand"
 	"time"
 )
@@ -50,5 +51,14 @@ func main() {
 	}
 	end = time.Now()
 	fmt.Printf("mul=%v\n", end.Sub(start))
+	fmt.Println(w)
+
+	w = 7
+	start = time.Now()
+	for i := 0; i < len(block); i++ {
+		w += bits.OnesCount64(block[i])
+	}
+	end = time.Now()
+	fmt.Printf("std=%v\n", end.Sub(start))
 	fmt.Println(w)
 }
