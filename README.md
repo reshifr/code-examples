@@ -4,7 +4,7 @@
 
 - **bitstraversal/bitstraversal.go**: An Implementation of Golang for traversing each bit in a bit vector.
 - **ffs/ffs.go**: An implementation of find first set (FFS).
-- **popcnt.go**: An Implementation of Hamming weight (POPCNT) and its benchmark.
+- **popcnt/popcnt.go**: An Implementation of Hamming weight (POPCNT) and its benchmark.
 - **smalltreebench/smalltreebench.go**: Benchmarking tree data structures and maps.
 - **aead.py**: Method for encrypting and decrypting data using AEAD algorithm.
 - **bogosort.cpp**: The implementation of the bogosort algorithm.
