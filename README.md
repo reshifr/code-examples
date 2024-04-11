@@ -2,10 +2,10 @@
 
 ## Various pieces of code from any programming language
 
-- **bitstraversal.go**: An Implementation of Golang for traversing each bit in a bit vector.
-- **ffs.go**: An implementation of find first set (FFS).
+- **bitstraversal/bitstraversal.go**: An Implementation of Golang for traversing each bit in a bit vector.
+- **ffs/ffs.go**: An implementation of find first set (FFS).
 - **popcnt.go**: An Implementation of Hamming weight (POPCNT) and its benchmark.
-- **smalltreebench.go**: Benchmarking tree data structures and maps.
+- **smalltreebench/smalltreebench.go**: Benchmarking tree data structures and maps.
 - **aead.py**: Method for encrypting and decrypting data using AEAD algorithm.
 - **bogosort.cpp**: The implementation of the bogosort algorithm.
 - **brute.cpp**: Cracking MD5 checksum to find a password using parallel computation with `std::async()`.
