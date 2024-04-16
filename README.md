@@ -3,6 +3,7 @@
 ## Various pieces of code from any programming language
 
 - **bitstraversal/bitstraversal.go**: An Implementation of Golang for traversing each bit in a bit vector.
+- **crandpx/crandpx.go**: Find collision probability in secure random number generator.
 - **ffs/ffs.go**: An implementation of find first set (FFS).
 - **popcnt/popcnt.go**: An Implementation of Hamming weight (POPCNT) and its benchmark.
 - **smalltreebench/smalltreebench.go**: Benchmarking tree data structures and maps.
