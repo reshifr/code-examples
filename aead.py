@@ -23,3 +23,15 @@ plaintext = b"hlu/8djzREmN.y45arUs&uPn7piEnei1"
 aead = ChaCha20Poly1305(key)
 ciphertext = aead.encrypt(nonce, plaintext, add)
 print(ciphertext.hex())
+
+# 3
+key = bytearray.fromhex(
+    "8260d820665dbcbcbf7ad2f54882ef786d7cc8a8c97b4e7ba628a10209cc531d"
+)
+add = None
+nonce = bytearray.fromhex("0102030400000000000003e8")
+plaintext = b"X"
+
+aead = ChaCha20Poly1305(key)
+ciphertext = aead.encrypt(nonce, plaintext, add)
+print(ciphertext.hex())
