@@ -73,6 +73,7 @@ class Daemon
 		pcntl_alarm($timeout);
 		call_user_func($callback);
 		pcntl_alarm(0);
+		exit(Daemon::EXIT_SUCCESS);
 	}
 
 	public function logInfo($message)
