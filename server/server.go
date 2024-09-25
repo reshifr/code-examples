@@ -33,8 +33,8 @@ func main() {
 		w.Write(content)
 	})
 
-	log.Println("Starting server on localhost:8443")
-	err = http.ListenAndServeTLS("localhost:8443", certFile, keyFile, nil)
+	log.Println("Starting server on localhost:11443")
+	err = http.ListenAndServeTLS("localhost:11443", certFile, keyFile, nil)
 	if err != nil {
 		log.Fatal("ListenAndServeTLS: ", err)
 	}
