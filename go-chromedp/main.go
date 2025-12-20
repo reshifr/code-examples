@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/chromedp/chromedp"
 )
@@ -19,7 +20,8 @@ func main() {
 	}
 
 	// same browser, first tab
-	ctx2 := ctx1
+	ctx2, cancel2 := context.WithTimeout(ctx1, 1*time.Minute)
+	defer cancel2()
 
 	// ensure the first tab is created
 	if err := chromedp.Run(ctx2); err != nil {
@@ -31,5 +33,4 @@ func main() {
 
 	fmt.Printf("Same browser: %t\n", c1.Browser == c2.Browser)
 	fmt.Printf("Same tab: %t\n", c1.Target == c2.Target)
-
 }
