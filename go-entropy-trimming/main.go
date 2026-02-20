@@ -11,18 +11,27 @@ import (
 
 func main() {
 	base := uint8(58)
-	chars := uint32(200)
-	bytes := uint32(math.Ceil(float64(chars) * math.Log2(float64(base)) / 8))
+	chars := uint32(20)
 	salt := make([]byte, 64)
-	rand.Read(salt)
-	key := argon2.Key([]byte("GILA"), salt, 3, 32*1024, 4, bytes)
-
-	b := big.NewInt(int64(base))
-	m := big.NewInt(int64(chars))
-	R := new(big.Int).SetBytes(key)
-	T := new(big.Int).Exp(b, m, nil)
-	q := new(big.Int).Div(R, T)
-	limit := new(big.Int).Mul(q, T)
-
-	fmt.Println(limit)
+	keyLen := uint32(math.Ceil(math.Log2(float64(base)*float64(chars)) / 8))
+	X := new(big.Int)
+	for {
+		rand.Read(salt)
+		b256 := big.NewInt(256)
+		m256 := big.NewInt(int64(keyLen))
+		bX := big.NewInt(int64(base))
+		mX := big.NewInt(int64(chars))
+		S := new(big.Int).Exp(b256, m256, nil)
+		T := new(big.Int).Exp(bX, mX, nil)
+		q := new(big.Int).Div(S, T)
+		R := new(big.Int).Mul(q, T)
+		key := argon2.Key([]byte("GILA"), salt, 3, 32*1024, 4, keyLen)
+		N := new(big.Int).SetBytes(key)
+		if N.Cmp(R) >= 0 {
+			continue
+		} else {
+			X.Mod(N, T)
+		}
+	}
+	fmt.Println(X)
 }
